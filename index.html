@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#C44E0A">
+<title>El Point del Shawarma · Menú Digital Interactivo</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      fontFamily: { sans: ['Poppins', 'sans-serif'] },
+      colors: {
+        brand: { DEFAULT: '#F26A1B', dark: '#C44E0A' },   // Color Principal (naranja)
+        accent: '#FFB020',                                 // Color Secundario (amarillo)
+        base: '#0B0B0C',                                   // Color Base (casi negro)
+        card: { DEFAULT: '#1A1A1D', 2: '#26211C' }
+      }
+    } }
+  };
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root { --pin: 64px; --hide: 200px; --offset: 120px; }
+  html { scroll-behavior: smooth; }
+  body {
+    background-color: #0B0B0C;
+    background-image: radial-gradient(circle at 50% 0%, rgba(242,106,27,0.10), transparent 60%);
+    background-repeat: no-repeat;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+
+  /* Título de categoría con "brochazo" */
+  .brush-title { position: relative; display: inline-block; padding: 4px 18px; isolation: isolate; }
+  .brush-title::before {
+    content: ""; position: absolute; inset: -2px -6px;
+    background: linear-gradient(100deg, #F26A1B, #C44E0A);
+    transform: rotate(-1.5deg) skewX(-6deg);
+    border-radius: 6px 14px 6px 14px; z-index: -1; opacity: 0.95;
+  }
+
+  /* CTA con glow */
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 4px 18px rgba(255,176,32,0.45); }
+    50% { box-shadow: 0 4px 28px rgba(255,176,32,0.75); }
+  }
+  .cta-glow { animation: glowPulse 2.2s ease-in-out infinite; }
+
+  /* Offsets calculados en JS según altura real de header + barra de categorías */
+  #header { top: calc(-1 * var(--hide)); }
+  #catNav { top: var(--pin); }
+  section[data-cat] { scroll-margin-top: var(--offset); }
+  @media (min-width: 768px) {
+    #catNav { top: calc(var(--pin) + 12px); max-height: calc(100vh - var(--pin) - 24px); }
+  }
+
+  .pill-btn { transition: all .15s ease; }
+  .pill-btn:active { transform: scale(.96); }
+  .mod-check { accent-color: #F26A1B; width: 16px; height: 16px; }
+</style>
+</head>
+<body class="font-sans text-white min-h-screen pb-36">
+
+<!-- HEADER FIJO -->
+<header id="header" class="sticky z-40 bg-gradient-to-br from-brand to-brand-dark shadow-[0_6px_24px_rgba(0,0,0,0.5)]">
+  <div class="px-4 pt-4 pb-3 text-center max-w-6xl mx-auto">
+    <h1 class="text-2xl sm:text-4xl font-black uppercase tracking-wide text-[#1A0F05] leading-none">El Point</h1>
+    <p class="inline-block mt-2 px-3 py-0.5 rounded-full bg-[#1A0F05] text-accent text-[11px] font-bold uppercase tracking-widest">del Shawarma</p>
+
+    <div class="flex justify-center gap-3 mt-3">
+      <!-- TikTok y Facebook: reemplazar href cuando el negocio entregue sus enlaces -->
+      <a href="https://www.instagram.com/elpoint_delshawarma" target="_blank" rel="noopener" aria-label="Instagram" class="w-9 h-9 rounded-full bg-[#1A0F05] text-accent grid place-items-center active:scale-95 transition-transform"><i class="fa-brands fa-instagram"></i></a>
+      <a href="#" aria-label="TikTok" class="w-9 h-9 rounded-full bg-[#1A0F05] text-accent grid place-items-center active:scale-95 transition-transform"><i class="fa-brands fa-tiktok"></i></a>
+      <a href="#" aria-label="Facebook" class="w-9 h-9 rounded-full bg-[#1A0F05] text-accent grid place-items-center active:scale-95 transition-transform"><i class="fa-brands fa-facebook-f"></i></a>
+    </div>
+
+    <ul class="mt-3 mx-auto max-w-md rounded-xl bg-black/55 px-4 py-2 text-left text-xs space-y-1">
+      <li><i class="fa-solid fa-motorcycle w-5 text-brand"></i> Delivery en Maracay y zonas cercanas</li>
+      <li><i class="fa-solid fa-location-dot w-5 text-brand"></i> Maracay, Edo. Aragua · Av. 19 de Abril</li>
+      <li><i class="fa-regular fa-clock w-5 text-brand"></i> Horario: consúltalo por WhatsApp</li>
+    </ul>
+  </div>
+
+  <div id="searchWrap" class="px-4 pb-3 pt-1 max-w-6xl mx-auto">
+    <div class="relative">
+      <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-[#1A0F05]/60"></i>
+      <input id="searchInput" type="search" oninput="filterProducts()" placeholder="Buscar: pollo, falafel, tabule…" aria-label="Buscar en el menú"
+        class="w-full rounded-full bg-white text-[#1A0F05] placeholder:text-[#1A0F05]/50 pl-11 pr-4 py-2.5 text-sm font-medium shadow-inner focus:outline-none focus:ring-2 focus:ring-accent">
+    </div>
+  </div>
+</header>
+
+<div class="max-w-6xl mx-auto md:flex md:gap-5 md:px-4">
+  <!-- CATEGORÍAS: barra horizontal en móvil, columna vertical fija en escritorio -->
+  <nav id="catNav" aria-label="Categorías"
+    class="sticky z-30 bg-base/95 backdrop-blur px-3 py-2 md:px-0 md:bg-transparent md:backdrop-blur-none md:self-start md:w-52 md:shrink-0 md:overflow-y-auto no-scrollbar">
+    <div id="catList" class="flex gap-2 overflow-x-auto no-scrollbar md:flex-col md:overflow-visible"></div>
+  </nav>
+
+  <main id="menu" class="flex-1 min-w-0 px-3 md:px-0 pt-3 pb-6" aria-live="polite"></main>
+</div>
+
+<!-- FOOTER DE CONVERSIÓN (solo demos de prospección) -->
+<section class="max-w-3xl mx-auto px-4 mb-8">
+  <div class="rounded-2xl border border-accent/60 bg-gradient-to-br from-card to-card-2 p-5 text-center shadow-[0_2px_10px_rgba(0,0,0,0.4)]">
+    <p class="text-accent text-xs font-bold uppercase tracking-widest mb-1">Esto es una demo</p>
+    <h3 class="text-lg font-extrabold leading-snug">¿Te gustaría un menú interactivo como este para tu negocio?</h3>
+    <p class="text-sm text-white/80 mt-2">Edita precios, productos y agotados desde una hoja de Google en tu celular y el menú se actualiza solo. Sin depender de un desarrollador.</p>
+    <a id="ctaConv" href="#" target="_blank" rel="noopener" class="inline-flex items-center gap-2 mt-4 px-5 py-3 rounded-full bg-accent text-[#1A0F05] font-extrabold text-sm active:scale-95 transition-transform">
+      <i class="fa-brands fa-whatsapp text-lg"></i> Quiero mi menú interactivo
+    </a>
+  </div>
+</section>
+
+<!-- BARRA INFERIOR FLOTANTE -->
+<div class="fixed bottom-0 inset-x-0 z-40 bg-base/95 backdrop-blur border-t border-accent/30 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+  <div class="max-w-6xl mx-auto flex items-center justify-between gap-3">
+    <div>
+      <p class="text-[11px] text-white/70 uppercase tracking-wide">Total · <span id="barCount">0</span> <span id="barCountLbl">productos</span></p>
+      <p id="barTotal" class="text-2xl font-extrabold text-accent leading-none">0$</p>
+      <p class="text-[10px] text-accent mt-1">Los precios no incluyen delivery.</p>
+    </div>
+    <button onclick="openModal()" class="cta-glow pill-btn px-6 py-3.5 rounded-full bg-accent text-[#1A0F05] font-extrabold text-sm uppercase tracking-wide">
+      <i class="fa-solid fa-bag-shopping mr-1"></i> Ver Pedido
+    </button>
+  </div>
+</div>
+
+<!-- MODAL DE PEDIDO -->
+<div id="modal" class="fixed inset-0 z-50 hidden bg-black/70 items-end sm:items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="modalTitle" onclick="if(event.target===this)closeModal()">
+  <div class="w-full sm:max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-gradient-to-b from-card-2 to-card border border-accent/50 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+    <div class="flex items-center justify-between mb-3">
+      <h2 id="modalTitle" class="brush-title text-[#1A0F05] font-black uppercase text-lg">Tu pedido</h2>
+      <button onclick="closeModal()" aria-label="Cerrar" class="w-9 h-9 rounded-full bg-white/10 grid place-items-center"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div id="modalList" class="space-y-2"></div>
+
+    <div class="mt-4 space-y-2">
+      <input id="clientName" type="text" placeholder="Tu nombre completo" autocomplete="name"
+        class="w-full rounded-xl bg-black/40 border border-white/15 px-3 py-2.5 text-sm placeholder:text-white/50 focus:outline-none focus:border-accent">
+      <textarea id="clientNotes" rows="2" placeholder="Observaciones (ej. Sin cebolla, salsas aparte, dirección...)"
+        class="w-full rounded-xl bg-black/40 border border-white/15 px-3 py-2 text-sm placeholder:text-white/50 focus:outline-none focus:border-accent resize-none"></textarea>
+    </div>
+
+    <div class="mt-4 flex items-end justify-between">
+      <span class="font-bold text-white/80">Total</span>
+      <span id="modalTotal" class="text-2xl font-extrabold text-accent">0$</span>
+    </div>
+    <p class="text-[11px] text-accent text-right">Los precios no incluyen delivery.</p>
+
+    <button id="sendBtn" onclick="sendWhatsApp()" class="pill-btn mt-4 w-full py-3.5 rounded-full bg-[#25D366] text-[#05260F] font-extrabold uppercase tracking-wide text-sm">
+      <i class="fa-brands fa-whatsapp text-lg mr-1"></i> Enviar por WhatsApp
+    </button>
+  </div>
+</div>
+
+<script>
+// ===================== CONFIGURACIÓN =====================
+// DEMO: WhatsApp de recepción de pedidos = número del prospector (reemplazar por el del negocio al entregar).
+const WHATSAPP = '584128995687';
+// Footer de conversión: WhatsApp de Efecto Landing.
+const EFECTO_LANDING_WA = '584128995687';
+// URL del CSV publicado de la hoja de Google (Archivo > Compartir > Publicar en la web > CSV).
+const PRODUCTS_CSV_URL = 'PEGAR_AQUI_URL_CSV_PUBLICADO_DE_EL_POINT';
+const PRODUCTS_FETCH_TIMEOUT_MS = 6000;
+
+// ===================== RESPALDO LOCAL (menú de demo) =====================
+// Precios y descripciones de DEMO: aproximados a partir del menú original del negocio.
+const fallbackRaw = [
+  ['Shawarmas', 'Shawarma', 'Lechuga, tomate, cebolla, pepinillo y salsa de ajonjolí. Mixto (carne y pollo) de base; elige carne o pollo al personalizar.', 7],
+  ['Shawarmas', 'Shawarma en Plato', '350 gr de carne y pollo con lechuga, tomate, cebolla, pepinillo, salsa de ajonjolí y pan tostado.', 9],
+  ['Shawarmas', 'Shawarma Súper Point', 'Carne, pollo, lechuga, tomate, cebolla, pepinillo, nabo, perejil, crema de pimentón y garbanzo con salsa de ajonjolí.', 11],
+  ['Shawarmas', 'Shawarma Súper Point en Plato', 'El Súper Point servido en plato: carne, pollo, vegetales, cremas y salsa de ajonjolí.', 12],
+  ['Shawarmas', 'Shawarma de Falafel', 'Falafel, lechuga, tomate, hierbabuena, rábano, nabo y salsa de ajonjolí.', 6],
+  ['Shawarmas', 'Sándwich de Pernil', 'NUEVO. Pan suave relleno de jugoso pernil, alfalfa, tomate y nuestra salsa especial.', 8],
+  ['Shawarmas', 'Super Plato Mixto Point', '100 g de pollo, 100 g de carne, 2 kibbe frito, 3 falafel, crema de pimentón, crema de berenjena, tabaquitos de uva, ensalada tabule y pan frito.', 20],
+  ['Raciones y Ensaladas', 'Tabule', 'Perejil, tomate, cebolla y trigo.', 4],
+  ['Raciones y Ensaladas', 'Fatuch', 'Pepino, cebolla, tomate y pan frito.', 4],
+  ['Raciones y Ensaladas', 'Ración de Fatte', 'Pan frito con yogurt y pollo.', 8],
+  ['Raciones y Ensaladas', 'Ración de Falafel', '4 croquetas de garbanzo con rábano, tomate, hierbabuena y salsa de ajonjolí.', 6],
+  ['Raciones y Ensaladas', 'Ración de Kibbe Frito', '4 piezas de kibbe frito.', 6],
+  ['Raciones y Ensaladas', 'Ración de Tabaquitos de Uva', '9 a 10 piezas de tabaquitos de uva.', 6],
+  ['Raciones y Ensaladas', 'Ración de Nuggets con Papas', 'Nuggets de pollo con papas fritas.', 6],
+  ['Raciones y Ensaladas', 'Ración de Papas Fritas', 'Porción de papas fritas.', 3],
+  ['Cremas', 'Crema de Pimentón', 'Porción grande.', 3],
+  ['Cremas', 'Crema de Garbanzo', 'Porción grande.', 3],
+  ['Bebidas', 'Refresco 1 L', 'Botella de 1 litro.', 2],
+  ['Bebidas', 'Refresco 355 ml', 'Lata o botella personal.', 1],
+  ['Bebidas', 'Malta', 'Botella personal.', 1.5],
+  ['Bebidas', 'Agua Pequeña', 'Botella de agua pequeña.', 1],
+  ['Bebidas', 'Nestea Durazno', 'Té frío sabor durazno.', 1],
+  ['Jugos Naturales', 'Jugo de Fresa', 'Fresa, melocotón o mora, natural.', 2.5],
+  ['Jugos Naturales', 'Limonada con Hierbabuena', 'Limonada natural con hierbabuena.', 2.5],
+  ['Cervezas', 'Cerveza Polar 222 ml', 'Polar negra o light, lata 222 ml.', 1.5]
+];
+
+// ===================== PERSONALIZACIÓN (slots en cascada) =====================
+// Casillas: sin cebolla, sin lechuga, sin salsa de ajonjolí. Proteína (selección única): carne, pollo o mixto.
+// "Con todo" (sin personalizar) = Mixto al precio de la hoja. Carne/Pollo ajustan el precio con un delta,
+// así si el dueño cambia el precio en la hoja, todo se mueve junto. Se define por producto (imageKey = categoria-nombre).
+const MODS_FULL = ['Sin cebolla', 'Sin lechuga', 'Sin salsa de ajonjolí'];
+const MODS_FALAFEL = ['Sin lechuga', 'Sin salsa de ajonjolí'];
+const CUSTOM_BY_CATEGORY = {};
+const CUSTOM_BY_PRODUCT = {
+  'shawarmas-shawarma': { mods: MODS_FULL, proteins: ['Carne', 'Pollo', 'Mixto'], delta: { Carne: 1, Pollo: -1, Mixto: 0 } },
+  'shawarmas-shawarma-en-plato': { mods: MODS_FULL, proteins: ['Carne', 'Mixto'], delta: { Carne: 1, Mixto: 0 } },
+  'shawarmas-shawarma-super-point': { mods: MODS_FULL },
+  'shawarmas-shawarma-super-point-en-plato': { mods: MODS_FULL },
+  'shawarmas-shawarma-de-falafel': { mods: MODS_FALAFEL }
+};
+
+// ===================== UTILIDADES =====================
+function getSlug(text) {
+  return String(text || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function normalizeText(text) {
+  return String(text || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function esc(text) {
+  return String(text == null ? '' : text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// Mismo formato del menú original: número + "$", coma decimal (24$, 6,5$).
+function fmt(n) {
+  return String(+Number(n).toFixed(2)).replace('.', ',') + '$';
+}
+
+// ===================== DATOS: respaldo + carga desde Google Sheets =====================
+let products = [];
+let categories = [];
+
+const fallbackProducts = [];
+const fallbackCategories = [];
+(function buildFallback() {
+  let counter = 0;
+  fallbackRaw.forEach(([category, name, description, price]) => {
+    counter++;
+    if (!fallbackCategories.includes(category)) fallbackCategories.push(category);
+    fallbackProducts.push({
+      id: `${getSlug(category)}-${getSlug(name)}-${counter}`,
+      imageKey: `${getSlug(category)}-${getSlug(name)}`,
+      category, name, description, price, available: true
+    });
+  });
+})();
+
+// ===== CARGA DINÁMICA DE PRODUCTOS DESDE GOOGLE SHEETS (CSV) =====
+function parseCSV(text) {
+  const rows = [];
+  let row = [];
+  let field = '';
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; }
+        else { inQuotes = false; }
+      } else {
+        field += c;
+      }
+    } else if (c === '"') {
+      inQuotes = true;
+    } else if (c === ',') {
+      row.push(field);
+      field = '';
+    } else if (c === '\r') {
+      // ignorar, se maneja el salto con \n
+    } else if (c === '\n') {
+      row.push(field);
+      rows.push(row);
+      row = [];
+      field = '';
+    } else {
+      field += c;
+    }
+  }
+  if (field.length > 0 || row.length > 0) {
+    row.push(field);
+    rows.push(row);
+  }
+  return rows;
+}
+
+function parseProductsCSV(text) {
+  const rows = parseCSV(text).filter(r => r.some(c => c.trim() !== ''));
+  if (rows.length < 2) return null;
+
+  const header = rows[0].map(h => h.trim().toLowerCase());
+  const colIndex = {
+    categoria: header.indexOf('categoria'),
+    nombre: header.indexOf('nombre'),
+    descripcion: header.indexOf('descripcion'),
+    precio: header.indexOf('precio'),
+    disponible: header.indexOf('disponible')
+  };
+  if (colIndex.categoria === -1 || colIndex.nombre === -1 || colIndex.precio === -1) return null;
+
+  const categoriesOrder = [];
+  const productsOut = [];
+  let counter = 0;
+
+  rows.slice(1).forEach((cols, i) => {
+    const rowNumber = i + 2;
+
+    let categoria = (cols[colIndex.categoria] || '').trim();
+    let nombre = (cols[colIndex.nombre] || '').trim();
+    const descripcion = colIndex.descripcion !== -1 ? (cols[colIndex.descripcion] || '').trim() : '';
+    const precioRaw = colIndex.precio !== -1 ? (cols[colIndex.precio] || '').trim() : '';
+    let precio = parseFloat(precioRaw.replace(',', '.'));
+
+    const faltaCategoria = !categoria;
+    const faltaNombre = !nombre;
+    const faltaPrecio = isNaN(precio);
+
+    if (faltaCategoria && faltaNombre) {
+      console.warn(`Fila ${rowNumber} del CSV: faltan "categoria" y "nombre". Se omite del menú.`);
+      return;
+    }
+
+    if (faltaCategoria || faltaNombre || faltaPrecio) {
+      const known = {};
+      if (!faltaCategoria) known.category = categoria;
+      if (!faltaNombre) known.name = nombre;
+      const candidatos = fallbackProducts.filter(bp =>
+        Object.keys(known).every(k => normalizeText(bp[k]) === normalizeText(known[k]))
+      );
+      const respaldo = candidatos.length === 1 ? candidatos[0] : null;
+
+      const camposFaltantes = [faltaCategoria && 'categoria', faltaNombre && 'nombre', faltaPrecio && 'precio'].filter(Boolean).join(', ');
+      const nombreParaLog = nombre || (respaldo && respaldo.name) || '(sin nombre)';
+
+      if (respaldo) {
+        if (faltaCategoria) categoria = respaldo.category;
+        if (faltaNombre) nombre = respaldo.name;
+        if (faltaPrecio) precio = respaldo.price;
+        console.warn(`Producto "${nombreParaLog}" (fila ${rowNumber}): faltaba "${camposFaltantes}". Se completó con el respaldo.`);
+      } else {
+        console.warn(`Producto "${nombreParaLog}" (fila ${rowNumber}): faltaba "${camposFaltantes}" y no está en el respaldo. Se omite.`);
+      }
+    }
+
+    if (!categoria || !nombre || isNaN(precio)) return;
+
+    const disponibleRaw = colIndex.disponible !== -1 ? (cols[colIndex.disponible] || '') : '';
+    const disponible = disponibleRaw.trim().toLowerCase() !== 'no';
+
+    if (!categoriesOrder.includes(categoria)) categoriesOrder.push(categoria);
+
+    counter++;
+    const id = `${getSlug(categoria)}-${getSlug(nombre)}-${counter}`;
+    const imageKey = `${getSlug(categoria)}-${getSlug(nombre)}`; // estable: sin contador
+    productsOut.push({ id, imageKey, category: categoria, name: nombre, description: descripcion, price: precio, available: disponible });
+  });
+
+  if (productsOut.length === 0) return null;
+  return { products: productsOut, categories: categoriesOrder };
+}
+
+async function loadProducts() {
+  try {
+    if (!PRODUCTS_CSV_URL || PRODUCTS_CSV_URL.startsWith('PEGAR_')) throw new Error('PRODUCTS_CSV_URL todavía no está configurada');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), PRODUCTS_FETCH_TIMEOUT_MS);
+    const response = await fetch(PRODUCTS_CSV_URL, { signal: controller.signal, cache: 'no-store' });
+    clearTimeout(timeoutId);
+    if (!response.ok) throw new Error(`No se pudo obtener el CSV (status ${response.status})`);
+
+    const text = await response.text();
+    const parsed = parseProductsCSV(text);
+    if (!parsed) throw new Error('El CSV no tiene el formato esperado o está vacío');
+
+    products = parsed.products;
+    categories = parsed.categories;
+  } catch (err) {
+    console.warn('No se pudo cargar el menú desde Google Sheets, se usa el respaldo local:', err);
+    products = fallbackProducts;
+    categories = fallbackCategories;
+  }
+}
+
+// ===================== ESTADO DEL CARRITO (slots en cascada) =====================
+// cart[id] = { manualQty, slots: [{ mods: string[], protein: string|null }, ...] }
+const cart = {};
+const openAccordion = {};
+let searchQuery = '';
+
+const emptySlot = () => ({ mods: [], protein: null });
+const slotIsEmpty = s => s.mods.length === 0 && !s.protein;
+const activeSlots = item => item ? item.slots.filter(s => !slotIsEmpty(s)) : [];
+const totalQty = item => item ? Math.max(item.manualQty, activeSlots(item).length) : 0;
+const plainQty = item => item ? Math.max(item.manualQty - activeSlots(item).length, 0) : 0;
+
+function getProduct(id) { return products.find(p => p.id === id); }
+function customFor(p) {
+  const cfg = CUSTOM_BY_PRODUCT[p.imageKey] || CUSTOM_BY_CATEGORY[getSlug(p.category)] || null;
+  if (!cfg) return null;
+  return { mods: cfg.mods || [], proteins: cfg.proteins || [], delta: cfg.delta || {} };
+}
+
+function slotPrice(p, s) {
+  const cfg = customFor(p);
+  return p.price + ((cfg && s.protein && cfg.delta[s.protein]) || 0);
+}
+function lineTotal(p) {
+  const it = cart[p.id];
+  if (!it) return 0;
+  return p.price * plainQty(it) + activeSlots(it).reduce((sum, s) => sum + slotPrice(p, s), 0);
+}
+
+function ensureItem(id) {
+  if (!cart[id]) cart[id] = { manualQty: 0, slots: [emptySlot()] };
+  return cart[id];
+}
+
+// Deja solo slots con contenido + exactamente UN slot vacío al final; elimina la entrada si total = 0.
+function normalizeSlots(id) {
+  const it = cart[id];
+  if (!it) return;
+  const p = getProduct(id);
+  it.slots = it.slots.filter(s => !slotIsEmpty(s));
+  if (p && customFor(p)) it.slots.push(emptySlot());
+  if (totalQty(it) === 0) delete cart[id];
+}
+
+function slotText(s) {
+  const mods = s.mods.map(m => m.charAt(0).toLowerCase() + m.slice(1));
+  return [s.protein, ...mods].filter(Boolean).join(', ');
+}
+
+// Contador principal = total de unidades.
+function updateQty(id, delta) {
+  if (delta > 0) {
+    const it = ensureItem(id);
+    it.manualQty = totalQty(it) + 1;               // siempre suma una unidad "con todo"
+  } else {
+    const it = cart[id];
+    if (!it) return;
+    if (plainQty(it) > 0) {
+      it.manualQty -= 1;                           // 1) primero resta unidades "con todo"
+    } else {
+      const act = activeSlots(it);
+      if (act.length) {                            // 2) luego elimina la última personalización
+        const idx = it.slots.lastIndexOf(act[act.length - 1]);
+        it.slots[idx] = emptySlot();
+        it.manualQty = Math.min(it.manualQty, act.length - 1);
+      } else {
+        it.manualQty = 0;
+      }
+    }
+  }
+  normalizeSlots(id);
+  refresh();
+}
+
+function toggleMod(id, slotIdx, modIdx) {
+  const p = getProduct(id); if (!p) return;
+  const mod = customFor(p).mods[modIdx];
+  const it = ensureItem(id);
+  const s = it.slots[slotIdx]; if (!s) return;
+  const i = s.mods.indexOf(mod);
+  if (i === -1) s.mods.push(mod); else s.mods.splice(i, 1);
+  normalizeSlots(id);
+  refresh();
+}
+
+function setProtein(id, slotIdx, protIdx) {
+  const p = getProduct(id); if (!p) return;
+  const prot = customFor(p).proteins[protIdx];
+  const it = ensureItem(id);
+  const s = it.slots[slotIdx]; if (!s) return;
+  s.protein = s.protein === prot ? null : prot;
+  normalizeSlots(id);
+  refresh();
+}
+
+// Elimina una personalización específica sin alterar las unidades "con todo".
+function removeSlot(id, slotIdx) {
+  const it = cart[id];
+  if (!it || !it.slots[slotIdx] || slotIsEmpty(it.slots[slotIdx])) return;
+  const plain = plainQty(it);
+  it.slots[slotIdx] = emptySlot();
+  it.manualQty = plain + activeSlots(it).length;
+  normalizeSlots(id);
+  refresh();
+}
+
+function toggleAccordion(id) {
+  openAccordion[id] = !openAccordion[id];
+  renderProducts();
+}
+
+function cartTotal() { return products.reduce((s, p) => s + lineTotal(p), 0); }
+function cartCount() { return products.reduce((s, p) => s + totalQty(cart[p.id]), 0); }
+
+// ===================== RENDER =====================
+function breakdownHTML(it) {
+  const act = activeSlots(it);
+  if (!act.length) return '';
+  const parts = [];
+  const plain = plainQty(it);
+  if (plain > 0) parts.push(`${plain} con todo`);
+  act.forEach(s => parts.push(`1 ${esc(slotText(s))}`));
+  return `<div class="text-[11px] text-white/80 text-right leading-snug">${parts.map(t => `<div>${t}</div>`).join('')}</div>`;
+}
+
+function customizeHTML(p, it, cfg) {
+  const slots = it ? it.slots : [emptySlot()];
+  return `<div class="mt-2 pt-2 border-t border-white/10 space-y-2">${slots.map((s, si) => `
+    <div class="rounded-lg bg-black/35 p-2.5">
+      <p class="text-[11px] font-bold text-accent uppercase tracking-wide mb-1.5">Personalizada ${si + 1}</p>
+      ${cfg.proteins.length ? `<div class="flex flex-wrap gap-1.5 mb-2">${cfg.proteins.map((pr, pi) => `
+        <button type="button" onclick="setProtein('${p.id}',${si},${pi})"
+          class="pill-btn px-3 py-1 rounded-full text-xs font-semibold border ${s.protein === pr ? 'bg-brand text-[#1A0F05] border-brand' : 'bg-white/5 border-white/20 text-white'}">${esc(pr)} ${fmt(p.price + (cfg.delta[pr] || 0))}</button>`).join('')}</div><p class="text-[10px] text-white/60 -mt-1 mb-2">Sin elegir proteína = Mixto.</p>` : ''}
+      <div class="flex flex-wrap gap-x-4 gap-y-1.5">${cfg.mods.map((m, mi) => `
+        <label class="inline-flex items-center gap-1.5 text-xs text-white cursor-pointer">
+          <input type="checkbox" class="mod-check" ${s.mods.includes(m) ? 'checked' : ''} onchange="toggleMod('${p.id}',${si},${mi})"> ${esc(m)}
+        </label>`).join('')}</div>
+    </div>`).join('')}</div>`;
+}
+
+function productCardHTML(p) {
+  const it = cart[p.id];
+  const qty = totalQty(it);
+  const cfg = customFor(p);
+  const open = !!openAccordion[p.id];
+  const soldOut = !p.available;
+  return `
+  <article class="product-item rounded-xl border border-accent/60 bg-gradient-to-br from-card to-card-2 p-2.5 shadow-[0_2px_10px_rgba(0,0,0,0.35)] transition-transform active:scale-[0.98] ${soldOut ? 'opacity-50' : ''}"
+    data-name="${esc(normalizeText(p.name))}" data-desc="${esc(normalizeText(p.description))}">
+    <div class="flex items-start justify-between gap-3">
+      <h3 class="font-bold text-sm text-white leading-snug">${esc(p.name)}</h3>
+      <span class="font-extrabold text-sm text-accent whitespace-nowrap">${fmt(p.price)}</span>
+    </div>
+    <p class="text-xs text-white/70 mt-1 leading-snug">${esc(p.description)}</p>
+    <div class="mt-2 flex items-center justify-between gap-2">
+      ${soldOut ? '<span class="text-xs font-bold text-white/80 uppercase tracking-wide">Agotado</span>'
+        : cfg ? `<button type="button" onclick="toggleAccordion('${p.id}')" class="pill-btn text-xs font-semibold text-brand inline-flex items-center gap-1.5" aria-expanded="${open}">
+            <i class="fa-solid fa-sliders"></i> Personalizar <i class="fa-solid fa-chevron-${open ? 'up' : 'down'} text-[10px]"></i></button>`
+        : '<span></span>'}
+      ${soldOut ? '' : `<div class="flex items-center gap-2">
+        <button type="button" onclick="updateQty('${p.id}',-1)" aria-label="Quitar uno" class="pill-btn w-8 h-8 rounded-full bg-white/10 border border-white/20 font-bold ${qty ? '' : 'opacity-40'}"><i class="fa-solid fa-minus text-xs"></i></button>
+        <span class="w-6 text-center font-extrabold text-sm text-white">${qty}</span>
+        <button type="button" onclick="updateQty('${p.id}',1)" aria-label="Agregar uno" class="pill-btn w-8 h-8 rounded-full bg-brand text-[#1A0F05] font-bold"><i class="fa-solid fa-plus text-xs"></i></button>
+      </div>`}
+    </div>
+    ${it ? breakdownHTML(it) : ''}
+    ${!soldOut && cfg && open ? customizeHTML(p, it, cfg) : ''}
+  </article>`;
+}
+
+function renderCategories() {
+  const html = categories.map(c => `
+    <button type="button" data-cat-btn="${getSlug(c)}" onclick="scrollToCategory('${getSlug(c)}')"
+      class="pill-btn shrink-0 whitespace-nowrap text-left px-4 py-2 rounded-full text-sm font-bold border bg-white/5 border-white/15 text-white">${esc(c)}</button>`).join('');
+  document.getElementById('catList').innerHTML = html;
+}
+
+function renderProducts() {
+  const q = normalizeText(searchQuery);
+  const html = categories.map(c => {
+    const list = products.filter(p => p.category === c && (!q ||
+      normalizeText(p.name).includes(q) || normalizeText(p.description).includes(q)));
+    if (!list.length) return '';
+    return `<section id="cat-${getSlug(c)}" data-cat="${getSlug(c)}" class="mb-6">
+      <h2 class="brush-title text-[#1A0F05] font-black uppercase text-base sm:text-lg mb-3 ml-2">${esc(c)}</h2>
+      <div class="grid gap-2.5 grid-cols-1 lg:grid-cols-2">${list.map(productCardHTML).join('')}</div>
+    </section>`;
+  }).join('');
+  document.getElementById('menu').innerHTML = html ||
+    `<p class="text-center text-white/70 py-10">No encontramos nada con “${esc(searchQuery)}”.</p>`;
+  updateActiveCategory();
+}
+
+function updateBar() {
+  const n = cartCount();
+  document.getElementById('barCount').textContent = n;
+  document.getElementById('barCountLbl').textContent = n === 1 ? 'producto' : 'productos';
+  document.getElementById('barTotal').textContent = fmt(cartTotal());
+}
+
+// Renderiza el modal desde el estado del carrito. Devuelve true si hay productos.
+function renderModalList() {
+  const rows = [];
+  products.forEach(p => {
+    const it = cart[p.id];
+    if (!totalQty(it)) return;
+    const plain = plainQty(it);
+    if (plain > 0) {
+      rows.push(`<div class="flex items-center justify-between gap-2 rounded-xl bg-black/30 p-2.5">
+        <div class="min-w-0"><p class="font-bold text-sm">${esc(p.name)} <span class="text-white/70 font-medium">· con todo</span></p>
+          <p class="text-xs text-white/70">${fmt(p.price)} c/u</p></div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button onclick="updateQtyFromModal('${p.id}',-1)" aria-label="Quitar uno" class="pill-btn w-8 h-8 rounded-full bg-white/10 border border-white/20"><i class="fa-solid fa-minus text-xs"></i></button>
+          <span class="w-5 text-center font-extrabold">${plain}</span>
+          <button onclick="updateQtyFromModal('${p.id}',1)" aria-label="Agregar uno" class="pill-btn w-8 h-8 rounded-full bg-brand text-[#1A0F05]"><i class="fa-solid fa-plus text-xs"></i></button>
+          <span class="w-14 text-right font-extrabold text-accent text-sm">${fmt(p.price * plain)}</span>
+        </div></div>`);
+    }
+    it.slots.forEach((s, si) => {
+      if (slotIsEmpty(s)) return;
+      rows.push(`<div class="flex items-center justify-between gap-2 rounded-xl bg-black/30 p-2.5">
+        <div class="min-w-0"><p class="font-bold text-sm">1x ${esc(p.name)}</p>
+          <p class="text-xs text-accent">${esc(slotText(s))}</p></div>
+        <div class="flex items-center gap-3 shrink-0">
+          <span class="font-extrabold text-accent text-sm">${fmt(slotPrice(p, s))}</span>
+          <button onclick="removeSlot('${p.id}',${si})" aria-label="Eliminar esta personalización" class="w-8 h-8 rounded-full bg-white/10 text-white/80"><i class="fa-regular fa-trash-can text-xs"></i></button>
+        </div></div>`);
+    });
+  });
+
+  const hay = rows.length > 0;
+  document.getElementById('modalList').innerHTML = hay ? rows.join('') :
+    '<p class="text-center text-white/80 py-8 font-semibold">Tu pedido está vacío</p>';
+  document.getElementById('modalTotal').textContent = fmt(cartTotal());
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = !hay;
+  btn.classList.toggle('opacity-40', !hay);
+  btn.classList.toggle('pointer-events-none', !hay);
+  return hay;
+}
+
+function updateQtyFromModal(id, change) {
+  updateQty(id, change);      // misma función que usa el menú principal
+  renderModalList();          // el modal sigue abierto aunque quede vacío
+}
+
+function modalIsOpen() { return !document.getElementById('modal').classList.contains('hidden'); }
+function openModal() {
+  const hay = renderModalList();
+  if (!hay) { alert('Aún no has seleccionado ningún producto.'); return; }
+  const m = document.getElementById('modal');
+  m.classList.remove('hidden'); m.classList.add('flex');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  const m = document.getElementById('modal');
+  m.classList.add('hidden'); m.classList.remove('flex');
+  document.body.style.overflow = '';
+}
+
+function refresh() {
+  renderProducts();
+  updateBar();
+  if (modalIsOpen()) renderModalList();
+}
+
+// ===================== BÚSQUEDA, CATEGORÍAS, WHATSAPP =====================
+function filterProducts() {
+  searchQuery = document.getElementById('searchInput').value;
+  renderProducts();
+}
+
+function scrollToCategory(slug) {
+  if (searchQuery) {
+    document.getElementById('searchInput').value = '';
+    searchQuery = '';
+    renderProducts();
+  }
+  const el = document.getElementById('cat-' + slug);
+  if (!el) return;
+  setActiveCategory(slug);
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });   // respeta scroll-margin-top
+}
+
+const ACTIVE_CLS = ['bg-brand', 'text-[#1A0F05]', 'border-brand', 'shadow-[0_4px_14px_rgba(242,106,27,0.55)]'];
+const INACTIVE_CLS = ['bg-white/5', 'border-white/15', 'text-white'];
+let currentCat = null;
+function setActiveCategory(slug) {
+  currentCat = slug;
+  document.querySelectorAll('[data-cat-btn]').forEach(b => {
+    const on = b.dataset.catBtn === slug;
+    ACTIVE_CLS.forEach(c => b.classList.toggle(c, on));
+    INACTIVE_CLS.forEach(c => b.classList.toggle(c, !on));
+    if (on && !window.matchMedia('(min-width:768px)').matches) {
+      const list = document.getElementById('catList');
+      list.scrollTo({ left: b.offsetLeft - 16, behavior: 'smooth' });
+    }
+  });
+}
+function updateActiveCategory() {
+  const secs = [...document.querySelectorAll('section[data-cat]')];
+  if (!secs.length) return;
+  const threshold = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--offset')) + 24;
+  let active = secs[0];
+  secs.forEach(s => { if (s.getBoundingClientRect().top <= threshold) active = s; });
+  if (active.dataset.cat !== currentCat) setActiveCategory(active.dataset.cat);
+}
+
+function buildMessage() {
+  const lines = [];
+  products.forEach(p => {
+    const it = cart[p.id];
+    if (!totalQty(it)) return;
+    const plain = plainQty(it);
+    if (plain > 0) lines.push(`- ${plain}x ${p.name} (${fmt(p.price * plain)})`);
+    it.slots.forEach(s => {
+      if (!slotIsEmpty(s)) lines.push(`- 1x ${p.name} (${slotText(s)}) (${fmt(slotPrice(p, s))})`);
+    });
+  });
+  const name = document.getElementById('clientName').value.trim();
+  const notes = document.getElementById('clientNotes').value.trim();
+  let msg = `Hola El Point del Shawarma! Quiero hacer este pedido:\n\n${lines.join('\n')}\n\nTotal: ${fmt(cartTotal())}\n(No incluye delivery)`;
+  if (name) msg += `\n\nNombre: ${name}`;
+  if (notes) msg += `\nObservaciones: ${notes}`;
+  return msg;
+}
+
+function sendWhatsApp() {
+  if (!cartCount()) return;
+  window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(buildMessage())}`, '_blank', 'noopener');
+}
+
+// ===================== MEDIDAS DE LAYOUT (offsets reales) =====================
+function measureLayout() {
+  const header = document.getElementById('header');
+  const pin = document.getElementById('searchWrap').offsetHeight;
+  const hide = Math.max(header.offsetHeight - pin, 0);
+  const mobile = !window.matchMedia('(min-width:768px)').matches;
+  const catH = mobile ? document.getElementById('catNav').offsetHeight : 0;
+  const r = document.documentElement.style;
+  r.setProperty('--pin', pin + 'px');
+  r.setProperty('--hide', hide + 'px');
+  r.setProperty('--offset', (pin + catH + 8) + 'px');
+}
+
+// ===================== INIT =====================
+(async function init() {
+  document.getElementById('ctaConv').href = `https://wa.me/${EFECTO_LANDING_WA}?text=${encodeURIComponent('Hola! Vi la demo del menú interactivo de El Point del Shawarma y quiero uno para mi negocio.')}`;
+  await loadProducts();             // carga asíncrona antes del primer render
+  renderCategories();
+  renderProducts();
+  updateBar();
+  measureLayout();
+  if (window.ResizeObserver) {
+    const ro = new ResizeObserver(measureLayout);
+    ['header', 'searchWrap', 'catNav'].forEach(id => ro.observe(document.getElementById(id)));
+  }
+  window.addEventListener('resize', measureLayout);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(measureLayout);
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => { updateActiveCategory(); ticking = false; });
+  }, { passive: true });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalIsOpen()) closeModal(); });
+})();
+</script>
+</body>
+</html>

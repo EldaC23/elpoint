@@ -1,0 +1,26 @@
+categoria,nombre,descripcion,precio,disponible
+Shawarmas,Shawarma,"Lechuga, tomate, cebolla, pepinillo y salsa de ajonjolí. Mixto (carne y pollo) de base; elige carne o pollo al personalizar.",7,si
+Shawarmas,Shawarma en Plato,"350 gr de carne y pollo con lechuga, tomate, cebolla, pepinillo, salsa de ajonjolí y pan tostado.",9,si
+Shawarmas,Shawarma Súper Point,"Carne, pollo, lechuga, tomate, cebolla, pepinillo, nabo, perejil, crema de pimentón y garbanzo con salsa de ajonjolí.",11,si
+Shawarmas,Shawarma Súper Point en Plato,"El Súper Point servido en plato: carne, pollo, vegetales, cremas y salsa de ajonjolí.",12,si
+Shawarmas,Shawarma de Falafel,"Falafel, lechuga, tomate, hierbabuena, rábano, nabo y salsa de ajonjolí.",6,si
+Shawarmas,Sándwich de Pernil,"NUEVO. Pan suave relleno de jugoso pernil, alfalfa, tomate y nuestra salsa especial.",8,si
+Shawarmas,Super Plato Mixto Point,"100 g de pollo, 100 g de carne, 2 kibbe frito, 3 falafel, crema de pimentón, crema de berenjena, tabaquitos de uva, ensalada tabule y pan frito.",20,si
+Raciones y Ensaladas,Tabule,"Perejil, tomate, cebolla y trigo.",4,si
+Raciones y Ensaladas,Fatuch,"Pepino, cebolla, tomate y pan frito.",4,si
+Raciones y Ensaladas,Ración de Fatte,Pan frito con yogurt y pollo.,8,si
+Raciones y Ensaladas,Ración de Falafel,"4 croquetas de garbanzo con rábano, tomate, hierbabuena y salsa de ajonjolí.",6,si
+Raciones y Ensaladas,Ración de Kibbe Frito,4 piezas de kibbe frito.,6,si
+Raciones y Ensaladas,Ración de Tabaquitos de Uva,9 a 10 piezas de tabaquitos de uva.,6,si
+Raciones y Ensaladas,Ración de Nuggets con Papas,Nuggets de pollo con papas fritas.,6,si
+Raciones y Ensaladas,Ración de Papas Fritas,Porción de papas fritas.,3,si
+Cremas,Crema de Pimentón,Porción grande.,3,si
+Cremas,Crema de Garbanzo,Porción grande.,3,si
+Bebidas,Refresco 1 L,Botella de 1 litro.,2,si
+Bebidas,Refresco 355 ml,Lata o botella personal.,1,si
+Bebidas,Malta,Botella personal.,1.5,si
+Bebidas,Agua Pequeña,Botella de agua pequeña.,1,si
+Bebidas,Nestea Durazno,Té frío sabor durazno.,1,si
+Jugos Naturales,Jugo de Fresa,"Fresa, melocotón o mora, natural.",2.5,si
+Jugos Naturales,Limonada con Hierbabuena,Limonada natural con hierbabuena.,2.5,si
+Cervezas,Cerveza Polar 222 ml,"Polar negra o light, lata 222 ml.",1.5,si
