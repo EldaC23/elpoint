@@ -1,6 +1,6 @@
 # El Point del Shawarma · Menú digital interactivo (demo)
 
-Un solo archivo autocontenido: `index.html` (Tailwind, FontAwesome y Google Fonts por CDN). Variante **SIN IMÁGENES**, paleta naranja `#F26A1B` / ámbar `#FFB020` / base `#0B0B0C`. 25 productos en 6 categorías, con precios iguales a su menú actual.
+Un solo archivo autocontenido: `index.html` (Tailwind, FontAwesome y Google Fonts por CDN). Variante **SIN IMÁGENES**, paleta naranja `#F26A1B` / ámbar `#FFB020` / base `#0B0B0C`. 20 productos en 4 categorías (Shawarmas, Raciones y Ensaladas, Cremas, Bebidas), con precios iguales a su menú actual.
 
 ## Cómo funciona
 - Los productos se cargan desde una hoja de Google publicada como CSV (`PRODUCTS_CSV_URL`). Si falla o aún no está configurada, usa el respaldo local `fallbackRaw` y el menú nunca queda vacío. Los avisos salen solo por `console.warn`.

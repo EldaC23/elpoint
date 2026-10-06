@@ -121,7 +121,7 @@
 <div class="fixed bottom-0 inset-x-0 z-40 bg-base/95 backdrop-blur border-t border-accent/30 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
   <div class="max-w-6xl mx-auto flex items-center justify-between gap-3">
     <div>
-      <p class="text-[11px] text-white/70 uppercase tracking-wide">Total · <span id="barCount">0</span> <span id="barCountLbl">productos</span></p>
+      <p class="text-[11px] text-white/70 uppercase tracking-wide">Total estimado · <span id="barCount">0</span> <span id="barCountLbl">productos</span></p>
       <p id="barTotal" class="text-2xl font-extrabold text-accent leading-none">0$</p>
       <p class="text-[10px] text-accent mt-1">Los precios no incluyen delivery.</p>
     </div>
@@ -149,7 +149,7 @@
     </div>
 
     <div class="mt-4 flex items-end justify-between">
-      <span class="font-bold text-white/80">Total</span>
+      <span class="font-bold text-white/80">Total estimado</span>
       <span id="modalTotal" class="text-2xl font-extrabold text-accent">0$</span>
     </div>
     <p class="text-[11px] text-accent text-right">Los precios no incluyen delivery.</p>
@@ -192,12 +192,7 @@ const fallbackRaw = [
   ['Cremas', 'Crema de Garbanzo', 'Porción grande.', 3],
   ['Bebidas', 'Refresco 1 L', 'Botella de 1 litro.', 2],
   ['Bebidas', 'Refresco 355 ml', 'Lata o botella personal.', 1],
-  ['Bebidas', 'Malta', 'Botella personal.', 1.5],
-  ['Bebidas', 'Agua Pequeña', 'Botella de agua pequeña.', 1],
-  ['Bebidas', 'Nestea Durazno', 'Té frío sabor durazno.', 1],
-  ['Jugos Naturales', 'Jugo de Fresa', 'Fresa, melocotón o mora, natural.', 2.5],
-  ['Jugos Naturales', 'Limonada con Hierbabuena', 'Limonada natural con hierbabuena.', 2.5],
-  ['Cervezas', 'Cerveza Polar 222 ml', 'Polar negra o light, lata 222 ml.', 1.5]
+  ['Bebidas', 'Cerveza Polar 222 ml', 'Polar negra o light, lata 222 ml.', 1.5]
 ];
 
 // ===================== PERSONALIZACIÓN (slots en cascada) =====================
@@ -716,7 +711,7 @@ function buildMessage() {
   });
   const name = document.getElementById('clientName').value.trim();
   const notes = document.getElementById('clientNotes').value.trim();
-  let msg = `Hola El Point del Shawarma! Quiero hacer este pedido:\n\n${lines.join('\n')}\n\nTotal: ${fmt(cartTotal())}\n(No incluye delivery)`;
+  let msg = `Hola El Point del Shawarma! Quiero hacer este pedido:\n\n${lines.join('\n')}\n\nTotal estimado: ${fmt(cartTotal())}\n(No incluye delivery)`;
   if (name) msg += `\n\nNombre: ${name}`;
   if (notes) msg += `\nObservaciones: ${notes}`;
   return msg;
